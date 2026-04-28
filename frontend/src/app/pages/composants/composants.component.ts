@@ -60,8 +60,8 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
         </label>
 
         <label>
-          Prix
-          <input type="number" step="0.01" [(ngModel)]="form.prixUnitaire" name="prixUnitaire">
+          Prix payé (€)
+          <input type="number" step="0.01" [(ngModel)]="form.prixAchatTotal" name="prixAchatTotal" placeholder="Ex : 11.99">
         </label>
 
         <label>
@@ -98,48 +98,64 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
             <th (click)="sort('type')">Type ⬍</th>
             <th (click)="sort('fournisseur')">Fournisseur ⬍</th>
             <th (click)="sort('dateAchat')">Date ⬍</th>
-            <th (click)="sort('prixUnitaire')">Prix ⬍</th>
-            <th></th>
+            <th (click)="sort('prixAchatTotal')">Prix d'achat ⬍</th>
+            <th (click)="sort('prixUnitaire')">Prix unitaire ⬍</th>
+            <th (click)="sort('stock')">Quantité ⬍</th>
+            <th>Actions</th>
           </tr>
           </thead>
 
           <tbody>
-          <tr *ngFor="let c of composants">
+          <tr *ngFor="let c of composants" [attr.id]="'row-' + c.id"
+              [class.highlight]="c.id === lastCreatedId">
+
+            <!-- NOM -->
             <td>{{ c.nom }}</td>
 
+            <!-- TYPE -->
             <td>
               <span class="badge">{{ c.type }}</span>
             </td>
 
+            <!-- FOURNISSEUR -->
             <td>
               {{ c.fournisseur || '-' }}
             </td>
 
+            <!-- DATE -->
             <td>
-              {{ c.dateAchat | date:'dd/MM/yyyy' }}
+              {{ c.dateAchat ? (c.dateAchat | date:'dd/MM/yyyy') : '-' }}
             </td>
 
+            <!-- PRIX D'ACHAT -->
             <td>
-              {{ c.prixUnitaire | number:'1.2-2' }} € / {{ c.unite }}
+              {{ c.prixAchatTotal ? (c.prixAchatTotal | number:'1.2-2') + ' €' : '-' }}
             </td>
 
+            <!-- PRIX UNITAIRE -->
             <td>
-              {{ c.stock }} {{ c.unite }}
+              {{ c.prixUnitaire ? (c.prixUnitaire | number:'1.2-2') : '-' }}
+              <span class="muted">/ {{ c.unite }}</span>
             </td>
 
+            <!-- QUANTITÉ -->
+            <td>
+              {{ c.stock ?? '-' }} {{ c.unite }}
+            </td>
+
+            <!-- ACTIONS -->
             <td class="actions">
 
-              <!-- MODIFIER -->
               <button class="icon-btn" (click)="edit(c)">
                 <span class="icon">edit</span>
               </button>
 
-              <!-- SUPPRIMER -->
               <button class="icon-btn danger" (click)="remove(c)">
                 <span class="icon">delete</span>
               </button>
 
             </td>
+
           </tr>
           </tbody>
         </table>
@@ -151,13 +167,20 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
 export class ComposantsComponent implements OnInit {
   composants: Composant[] = [];
   types: TypeComposant[] = ['TISSU', 'MERCERIE', 'EMBALLAGE', 'AUTRE'];
+  lastCreatedId?: number;
 
   form: Composant = {
     nom: '',
     type: 'TISSU',
     prixUnitaire: 0,
+
+    prixAchatTotal: 0,
+
     unite: 'm',
-    stock: 0
+    stock: 0,
+
+    dateAchat: '',
+    fournisseur: ''
   };
 
   constructor(private composantService: ComposantService) {}
@@ -199,13 +222,30 @@ export class ComposantsComponent implements OnInit {
 
   save(): void {
     const request = this.form.id
-      ? this.composantService.update(this.form.id, this.form)
-      : this.composantService.create(this.form);
+        ? this.composantService.update(this.form.id, this.form)
+        : this.composantService.create(this.form);
 
-    request.subscribe(() => {
+    request.subscribe((created) => {
+      this.lastCreatedId = created.id;
+
       this.reset();
       this.load();
+
+      setTimeout(() => this.scrollToNew(), 300);
     });
+  }
+
+  scrollToNew(): void {
+    if (!this.lastCreatedId) return;
+
+    const element = document.getElementById('row-' + this.lastCreatedId);
+
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
   }
 
   edit(composant: Composant): void {
@@ -230,8 +270,14 @@ export class ComposantsComponent implements OnInit {
       nom: '',
       type: 'TISSU',
       prixUnitaire: 0,
+
+      prixAchatTotal: 0, // 👈 AJOUT
+
       unite: 'm',
-      stock: 0
+      stock: 0,
+
+      dateAchat: '',
+      fournisseur: ''
     };
   }
 
