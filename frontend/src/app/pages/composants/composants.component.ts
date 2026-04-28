@@ -179,7 +179,9 @@ export class ComposantsComponent implements OnInit {
 
   edit(c: Composant): void {
     const dialogRef = this.dialog.open(EditComposantDialog, {
-      width: '460px',
+      width: 'auto',
+      maxWidth: '92vw',
+      panelClass: 'premium-dialog',
       data: { ...c }
     });
 
@@ -264,55 +266,65 @@ export class ComposantsComponent implements OnInit {
   imports: [CommonModule, FormsModule],
   template: `
     <div class="dialog-box">
-      <h2>Modifier le composant</h2>
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Modification</p>
+          <h2>Modifier le composant</h2>
+        </div>
+        <button type="button" class="ghost-btn small" (click)="close()">
+          <span class="icon">close</span>
+        </button>
+      </div>
 
-      <label>
-        Nom
-        <input [(ngModel)]="data.nom" name="nom">
-      </label>
+      <div class="dialog-grid">
+        <label>
+          Nom
+          <input [(ngModel)]="data.nom" name="nom">
+        </label>
 
-      <label>
-        Type
-        <select [(ngModel)]="data.type" name="type" (change)="onTypeChange()">
-          <option value="TISSU">Tissu</option>
-          <option value="MERCERIE">Mercerie</option>
-          <option value="EMBALLAGE">Emballage</option>
-          <option value="AUTRE">Autre</option>
-        </select>
-      </label>
+        <label>
+          Type
+          <select [(ngModel)]="data.type" name="type" (change)="onTypeChange()">
+            <option value="TISSU">Tissu</option>
+            <option value="MERCERIE">Mercerie</option>
+            <option value="EMBALLAGE">Emballage</option>
+            <option value="AUTRE">Autre</option>
+          </select>
+        </label>
 
-      <label>
-        Fournisseur
-        <input [(ngModel)]="data.fournisseur" name="fournisseur">
-      </label>
+        <label>
+          Fournisseur
+          <input [(ngModel)]="data.fournisseur" name="fournisseur">
+        </label>
 
-      <label>
-        Date d'achat
-        <input type="date" [(ngModel)]="data.dateAchat" name="dateAchat">
-      </label>
+        <label>
+          Date d'achat
+          <input type="date" [(ngModel)]="data.dateAchat" name="dateAchat">
+        </label>
 
-      <label>
-        Prix payé (€)
-        <input type="number" step="0.01" [(ngModel)]="data.prixAchatTotal" name="prixAchatTotal">
-      </label>
+        <label>
+          Prix payé (€)
+          <input type="number" step="0.01" [(ngModel)]="data.prixAchatTotal" name="prixAchatTotal">
+        </label>
 
-      <label>
-        Unité
-        <select [(ngModel)]="data.unite" name="unite">
-          <option value="m">mètre</option>
-          <option value="unité">unité</option>
-          <option value="lot">lot</option>
-        </select>
-      </label>
+        <label>
+          Unité
+          <select [(ngModel)]="data.unite" name="unite">
+            <option value="m">mètre</option>
+            <option value="unité">unité</option>
+            <option value="lot">lot</option>
+          </select>
+        </label>
 
-      <label>
-        Quantité / métrage
-        <input type="number" step="0.01" [(ngModel)]="data.stock" name="stock">
-      </label>
+        <label>
+          Quantité / métrage
+          <input type="number" step="0.01" [(ngModel)]="data.stock" name="stock">
+        </label>
+      </div>
 
       <div class="dialog-actions">
         <button type="button" class="secondary" (click)="close()">Annuler</button>
-        <button type="button" (click)="save()">Valider</button>
+        <button type="button" (click)="save()">Enregistrer</button>
       </div>
     </div>
   `
