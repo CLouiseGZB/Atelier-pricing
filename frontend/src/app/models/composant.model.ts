@@ -9,4 +9,6 @@ export interface Composant {
   unite: string;
   stock: number;
   fournisseur?: string;
+  prixAchatTotal: number ;
+
 }

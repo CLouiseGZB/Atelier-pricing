@@ -496,6 +496,15 @@ th:hover {
   font-weight: 800;
 }
 
+.highlight {
+  animation: flash 1.5s ease;
+}
+
+@keyframes flash {
+  0% { background: #ede9fe; }
+  100% { background: transparent; }
+}
+
 /* ACTION BUTTON */
 
 .icon-btn {

@@ -1,19 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Composant, TypeComposant } from '../../models/composant.model';
 import { ComposantService } from '../../services/composant.service';
-import {MatCard, MatCardModule} from '@angular/material/card';
-import {MatFormField, MatFormFieldModule, MatLabel} from '@angular/material/form-field';
-import {MatInput, MatInputModule} from '@angular/material/input';
-import {MatButton, MatButtonModule} from '@angular/material/button';
-import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
 
+import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-composants',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatCard, MatFormField, MatLabel, MatSelect, MatOption, MatInput, MatButton],
+  imports: [CommonModule, FormsModule, MatDialogModule],
   template: `
     <section class="page-header">
       <div>
@@ -21,19 +17,12 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
         <h2>Composants</h2>
         <p>Gère tes tissus, boutons, fermetures et accessoires</p>
       </div>
-
-      <button class="primary-btn">
-        <span class="icon">add</span>
-        Ajouter
-      </button>
     </section>
 
-    <!-- FORM -->
     <section class="card form-card">
       <h3>Ajouter un composant</h3>
 
       <form class="form" (ngSubmit)="save()">
-
         <label>
           Nom
           <input [(ngModel)]="form.nom" name="nom" placeholder="Ex : Coton fleuri">
@@ -60,8 +49,8 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
         </label>
 
         <label>
-          Prix
-          <input type="number" step="0.01" [(ngModel)]="form.prixUnitaire" name="prixUnitaire">
+          Prix payé (€)
+          <input type="number" step="0.01" [(ngModel)]="form.prixAchatTotal" name="prixAchatTotal">
         </label>
 
         <label>
@@ -82,11 +71,9 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
           <span class="icon">add</span>
           Ajouter
         </button>
-
       </form>
     </section>
 
-    <!-- LISTE -->
     <section class="card">
       <h3>Liste des composants</h3>
 
@@ -98,53 +85,55 @@ import {MatOption, MatSelect, MatSelectModule} from '@angular/material/select';
             <th (click)="sort('type')">Type ⬍</th>
             <th (click)="sort('fournisseur')">Fournisseur ⬍</th>
             <th (click)="sort('dateAchat')">Date ⬍</th>
-            <th (click)="sort('prixUnitaire')">Prix ⬍</th>
-            <th></th>
+            <th (click)="sort('prixAchatTotal')">Prix payé ⬍</th>
+            <th (click)="sort('prixUnitaire')">Prix unitaire ⬍</th>
+            <th (click)="sort('stock')">Quantité ⬍</th>
+            <th>Actions</th>
           </tr>
           </thead>
 
           <tbody>
           <tr *ngFor="let c of composants">
+
             <td>{{ c.nom }}</td>
 
+            <td><span class="badge">{{ c.type }}</span></td>
+
+            <td>{{ c.fournisseur || '-' }}</td>
+
             <td>
-              <span class="badge">{{ c.type }}</span>
+              {{ c.dateAchat ? (c.dateAchat | date:'dd/MM/yyyy') : '-' }}
+            </td>
+
+            <!-- 👇 ICI -->
+            <td>
+              {{ c.prixAchatTotal != null
+                ? (c.prixAchatTotal | number:'1.2-2') + ' €'
+                : '-' }}
             </td>
 
             <td>
-              {{ c.fournisseur || '-' }}
+              {{ c.prixUnitaire != null
+                ? (c.prixUnitaire | number:'1.2-2')
+                : '-' }}
+              <span class="muted">/ {{ c.unite }}</span>
             </td>
 
-            <td>
-              {{ c.dateAchat | date:'dd/MM/yyyy' }}
-            </td>
-
-            <td>
-              {{ c.prixUnitaire | number:'1.2-2' }} € / {{ c.unite }}
-            </td>
-
-            <td>
-              {{ c.stock }} {{ c.unite }}
-            </td>
+            <td>{{ c.stock ?? '-' }} {{ c.unite }}</td>
 
             <td class="actions">
-
-              <!-- MODIFIER -->
               <button class="icon-btn" (click)="edit(c)">
                 <span class="icon">edit</span>
               </button>
-
-              <!-- SUPPRIMER -->
               <button class="icon-btn danger" (click)="remove(c)">
                 <span class="icon">delete</span>
               </button>
-
             </td>
+
           </tr>
           </tbody>
         </table>
       </div>
-
     </section>
   `
 })
@@ -152,28 +141,72 @@ export class ComposantsComponent implements OnInit {
   composants: Composant[] = [];
   types: TypeComposant[] = ['TISSU', 'MERCERIE', 'EMBALLAGE', 'AUTRE'];
 
-  form: Composant = {
-    nom: '',
-    type: 'TISSU',
-    prixUnitaire: 0,
-    unite: 'm',
-    stock: 0
-  };
+  lastCreatedId?: number;
 
-  constructor(private composantService: ComposantService) {}
+  sortField = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  form: Composant = this.getEmptyForm();
+
+  constructor(
+      private composantService: ComposantService,
+      private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.load();
   }
 
   load(): void {
-    this.composantService.findAll().subscribe(data => this.composants = data);
+    this.composantService.findAll().subscribe(data => {
+      this.composants = data;
+    });
   }
 
-  sortField: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
+  save(): void {
+    const request = this.form.id
+        ? this.composantService.update(this.form.id, this.form)
+        : this.composantService.create(this.form);
 
-  sort(field: string) {
+    request.subscribe(created => {
+      this.lastCreatedId = created.id;
+      this.reset();
+      this.load();
+
+      setTimeout(() => this.scrollToNew(), 300);
+    });
+  }
+
+  edit(c: Composant): void {
+    const dialogRef = this.dialog.open(EditComposantDialog, {
+      width: '460px',
+      data: { ...c }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result || !c.id) return;
+
+      this.composantService.update(c.id, result).subscribe(() => {
+        this.load();
+      });
+    });
+  }
+
+  remove(c: Composant): void {
+    if (!c.id) return;
+
+    if (confirm(`Supprimer "${c.nom}" ?`)) {
+      this.composantService.delete(c.id).subscribe(() => {
+        this.load();
+      });
+    }
+  }
+
+  onTypeChange(): void {
+    this.form.unite = this.form.type === 'TISSU' ? 'm' : 'unité';
+  }
+
+  sort(field: string): void {
     if (this.sortField === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
@@ -182,11 +215,8 @@ export class ComposantsComponent implements OnInit {
     }
 
     this.composants.sort((a: any, b: any) => {
-      let valueA = a[field];
-      let valueB = b[field];
-
-      if (!valueA) valueA = '';
-      if (!valueB) valueB = '';
+      let valueA = a[field] ?? '';
+      let valueB = b[field] ?? '';
 
       if (typeof valueA === 'string') valueA = valueA.toLowerCase();
       if (typeof valueB === 'string') valueB = valueB.toLowerCase();
@@ -197,42 +227,111 @@ export class ComposantsComponent implements OnInit {
     });
   }
 
-  save(): void {
-    const request = this.form.id
-      ? this.composantService.update(this.form.id, this.form)
-      : this.composantService.create(this.form);
+  scrollToNew(): void {
+    if (!this.lastCreatedId) return;
 
-    request.subscribe(() => {
-      this.reset();
-      this.load();
-    });
-  }
+    const element = document.getElementById('row-' + this.lastCreatedId);
 
-  edit(composant: Composant): void {
-    this.form = { ...composant };
-  }
-
-  onTypeChange(): void {
-    if (this.form.type === 'TISSU') {
-      this.form.unite = 'm';
-    } else {
-      this.form.unite = 'unité';
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
     }
   }
 
-  remove(composant: Composant): void {
-    if (!composant.id) return;
-    this.composantService.delete(composant.id).subscribe(() => this.load());
+  reset(): void {
+    this.form = this.getEmptyForm();
   }
 
-  reset(): void {
-    this.form = {
+  private getEmptyForm(): Composant {
+    return {
       nom: '',
       type: 'TISSU',
       prixUnitaire: 0,
+      prixAchatTotal: 0,
       unite: 'm',
-      stock: 0
+      stock: 0,
+      dateAchat: '',
+      fournisseur: ''
     };
   }
+}
 
+@Component({
+  selector: 'app-edit-composant-dialog',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="dialog-box">
+      <h2>Modifier le composant</h2>
+
+      <label>
+        Nom
+        <input [(ngModel)]="data.nom" name="nom">
+      </label>
+
+      <label>
+        Type
+        <select [(ngModel)]="data.type" name="type" (change)="onTypeChange()">
+          <option value="TISSU">Tissu</option>
+          <option value="MERCERIE">Mercerie</option>
+          <option value="EMBALLAGE">Emballage</option>
+          <option value="AUTRE">Autre</option>
+        </select>
+      </label>
+
+      <label>
+        Fournisseur
+        <input [(ngModel)]="data.fournisseur" name="fournisseur">
+      </label>
+
+      <label>
+        Date d'achat
+        <input type="date" [(ngModel)]="data.dateAchat" name="dateAchat">
+      </label>
+
+      <label>
+        Prix payé (€)
+        <input type="number" step="0.01" [(ngModel)]="data.prixAchatTotal" name="prixAchatTotal">
+      </label>
+
+      <label>
+        Unité
+        <select [(ngModel)]="data.unite" name="unite">
+          <option value="m">mètre</option>
+          <option value="unité">unité</option>
+          <option value="lot">lot</option>
+        </select>
+      </label>
+
+      <label>
+        Quantité / métrage
+        <input type="number" step="0.01" [(ngModel)]="data.stock" name="stock">
+      </label>
+
+      <div class="dialog-actions">
+        <button type="button" class="secondary" (click)="close()">Annuler</button>
+        <button type="button" (click)="save()">Valider</button>
+      </div>
+    </div>
+  `
+})
+export class EditComposantDialog {
+  constructor(
+      public dialogRef: MatDialogRef<EditComposantDialog>,
+      @Inject(MAT_DIALOG_DATA) public data: Composant
+  ) {}
+
+  onTypeChange(): void {
+    this.data.unite = this.data.type === 'TISSU' ? 'm' : 'unité';
+  }
+
+  save(): void {
+    this.dialogRef.close(this.data);
+  }
+
+  close(): void {
+    this.dialogRef.close();
+  }
 }
