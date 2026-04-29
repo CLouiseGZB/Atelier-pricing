@@ -15,6 +15,7 @@ export interface Creation {
   autresCouts: number;
   dateCreation?: string;
   composants: CreationComposant[];
+  photoUrl?: string;
 }
 
 export interface CreationRequest {
@@ -27,6 +28,7 @@ export interface CreationRequest {
     composantId: number;
     quantiteUtilisee: number;
   }[];
+  photoUrl?: string;
 }
 
 export interface PrixCreation {

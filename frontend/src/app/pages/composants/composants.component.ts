@@ -118,7 +118,7 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
               <span class="muted">/ {{ c.unite }}</span>
             </td>
 
-            <td data-label="Quantité">{{ c.stock ?? '-' }} {{ c.unite }}</td>
+            <td data-label="Quantité">{{ c.stock }} {{ c.unite }}</td>
 
             <td class="actions">
               <button class="icon-btn" (click)="edit(c)">

@@ -24,4 +24,8 @@ export class CreationService {
   calculerPrix(id: number): Observable<PrixCreation> {
     return this.http.get<PrixCreation>(`${this.apiUrl}/${id}/prix`);
   }
+
+  createWithImage(formData: FormData) {
+    return this.http.post<Creation>(this.apiUrl, formData);
+  }
 }
