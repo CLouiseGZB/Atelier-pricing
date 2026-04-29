@@ -1,13 +1,5 @@
 # 🧵 Atelier Pricing
 
-![image](frontend/assets/screenshots/image.png)
-
----
-
-## 👩‍💻 Équipe
-
-- **Louisiane C** — Web Developer
-
 ---
 
 ## 🏢 Contexte
