@@ -993,30 +993,27 @@ td {
 /* =========================
    CARTES
 ======================== */
-.creations-page .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 18px;
-}
-
 .creation-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 240px));
+  gap: 16px;
+  justify-content: center;
 }
 
+/* Carte */
 .creation-card {
   background: white;
   border: 1px solid rgba(231,222,252,0.9);
-  border-radius: 26px;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 18px 45px rgba(76,29,149,0.08);
+  box-shadow: 0 10px 25px rgba(76,29,149,0.08);
 }
 
 .creation-image {
-  height: 190px;
+  width: 100%;
+  height: 260px;
   background: #f5f3ff;
+  overflow: hidden;
 }
 
 .creation-image img {
@@ -1025,32 +1022,38 @@ td {
   object-fit: cover;
 }
 
-.creation-image.empty {
-  display: grid;
-  place-items: center;
-  color: var(--primary);
-}
-
-.creation-image.empty .icon {
-  font-size: 54px;
-}
-
 .creation-card-content {
-  padding: 18px;
+  padding: 14px;
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .creation-card-content h3 {
   margin: 0;
-  font-size: 20px;
-  color: var(--text);
+  font-size: 16px;
 }
 
-.file-upload {
+.component-list {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.component-pill {
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f3efff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Boutons */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* BOUTON */

@@ -145,7 +145,8 @@ interface LigneForm {
 
           <div class="form-actions">
             <button type="button" class="secondary" (click)="reset()">Annuler</button>
-            <button type="submit">
+
+            <button type="button" (click)="save()">
               <span class="icon">save</span>
               Enregistrer
             </button>
@@ -302,6 +303,7 @@ export class CreationsComponent implements OnInit {
   }
 
   save(): void {
+    console.log('BOUTON ENREGISTRER CLIQUÉ');
     const formData = new FormData();
 
     formData.append('nom', this.nom);
