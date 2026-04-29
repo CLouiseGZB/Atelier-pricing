@@ -95,31 +95,30 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
           <tbody>
           <tr *ngFor="let c of composants">
 
-            <td>{{ c.nom }}</td>
+            <td data-label="Nom">{{ c.nom }}</td>
 
-            <td><span class="badge">{{ c.type }}</span></td>
+            <td data-label="Type"><span class="badge">{{ c.type }}</span></td>
 
-            <td>{{ c.fournisseur || '-' }}</td>
+            <td data-label="Fournisseur">{{ c.fournisseur || '-' }}</td>
 
-            <td>
+            <td data-label="Date">
               {{ c.dateAchat ? (c.dateAchat | date:'dd/MM/yyyy') : '-' }}
             </td>
 
-            <!-- 👇 ICI -->
-            <td>
+            <td data-label="Prix payé">
               {{ c.prixAchatTotal != null
                 ? (c.prixAchatTotal | number:'1.2-2') + ' €'
                 : '-' }}
             </td>
 
-            <td>
+            <td data-label="Prix unitaire">
               {{ c.prixUnitaire != null
                 ? (c.prixUnitaire | number:'1.2-2')
                 : '-' }}
               <span class="muted">/ {{ c.unite }}</span>
             </td>
 
-            <td>{{ c.stock ?? '-' }} {{ c.unite }}</td>
+            <td data-label="Quantité">{{ c.stock ?? '-' }} {{ c.unite }}</td>
 
             <td class="actions">
               <button class="icon-btn" (click)="edit(c)">
